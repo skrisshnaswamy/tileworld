@@ -5,21 +5,13 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class PatrolPath {
-    private List<PatrolPoint> pps = new LinkedList<PatrolPoint>();
-    public List<PatrolPoint> getPps() {
-        return pps;
-    }
-
+    private final List<PatrolPoint> pps = new LinkedList<PatrolPoint>();
     private PatrolPoint line1p1, line1p2, line2p1, line2p2;
     private int pn;
     private boolean line = false;
-
-    public enum Shape {
-        ZIGZAG, STAIR, CUSTOM
-    };
-
     /**
      * build patrol path with 1 point
+     *
      * @param p1 the initial point
      */
     public PatrolPath(PatrolPoint p1) {
@@ -29,6 +21,7 @@ public class PatrolPath {
 
     /**
      * build patrol path with many points
+     *
      * @param newps array of patrol points
      */
     public PatrolPath(PatrolPoint[] newps) {
@@ -39,9 +32,10 @@ public class PatrolPath {
 
     /**
      * build patrol path with two lines
+     *
      * @param l1p1 start point of first line
      * @param l1p2 end point of first line
-     * @param // l2p1start point of second line
+     * @param //   l2p1start point of second line
      * @param l2p2 end point of second line
      */
     public PatrolPath(PatrolPoint l1p1, PatrolPoint l1p2, PatrolPoint l2p1,
@@ -53,8 +47,13 @@ public class PatrolPath {
         this.line = true;
     }
 
+    public List<PatrolPoint> getPps() {
+        return pps;
+    }
+
     /**
      * add point to end of patrol path
+     *
      * @param newp one point to be added
      */
     public void addPoint(PatrolPoint newp) {
@@ -63,6 +62,7 @@ public class PatrolPath {
 
     /**
      * add points to end of patrol path
+     *
      * @param newps points to be added
      */
     public void addPoints(PatrolPoint[] newps) {
@@ -72,6 +72,7 @@ public class PatrolPath {
 
     /**
      * get next point of the patrol path
+     *
      * @return next point of the patrol path
      */
     public PatrolPoint nextPoint() {
@@ -82,8 +83,9 @@ public class PatrolPath {
 
     /**
      * generate patrol points automatically and add to the path
+     *
      * @param precision layers for the ZigZag and Stair shape
-     * @param shape shape of the path
+     * @param shape     shape of the path
      */
     public void autoPath(int precision, Shape shape) {
         if (line) {
@@ -117,9 +119,9 @@ public class PatrolPath {
                         PatrolPoint p6 = PatrolPoint.midPoint(this.line1p2,
                                 this.line2p2);
 
-                        PatrolPoint[] pp = { p4, p5, this.line1p2, p4, p6,
+                        PatrolPoint[] pp = {p4, p5, this.line1p2, p4, p6,
                                 this.line2p2, p5, p6, this.line1p2, p5,
-                                this.line1p1 };
+                                this.line1p1};
                         this.addPoints(pp);
                 }
             }
@@ -131,5 +133,9 @@ public class PatrolPath {
      */
     public void reset() {
         pps.clear();
+    }
+
+    public enum Shape {
+        ZIGZAG, STAIR, CUSTOM
     }
 }

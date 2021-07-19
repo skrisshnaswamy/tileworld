@@ -11,17 +11,16 @@ import tileworld.environment.TWDirection;
  *
  * @author michaellees
  * Created: Jan 24, 2011
- *
+ * <p>
  * Copyright 2011
- *
- *
+ * <p>
+ * <p>
  * Description:
- *
+ * <p>
  * This small class is used to return the result of a think execution.
- *
+ * <p>
  * The result of a think procedure should include two things: the actions to take
  * and a direction in which to move if a move is selected.
- *
  */
 public class TWThought {
 

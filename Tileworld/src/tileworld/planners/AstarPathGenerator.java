@@ -4,46 +4,83 @@
  */
 package tileworld.planners;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import tileworld.agent.TWAgent;
 import tileworld.environment.TWEnvironment;
+
+import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * TWContextBuilder
  *
  * @author michael lees, Kevin Glass
  * Created: Apr 22, 2010
- *
+ * <p>
  * Copyright Kevin Glass 2010.
- *
- *
+ * <p>
+ * <p>
  * Description: This is an AStar implementation adopted from elsewhere,
  * the original code and very nice explanation is available here:
- *
+ * <p>
  * http://www.cokeandcode.com/pathfinding
- *
+ * <p>
  * Note that Tileworld was originally designed to evaluate different planning
- *  algorithms. When the environment is highly dynamic producing such
+ * algorithms. When the environment is highly dynamic producing such
  * long term plans begins to make less sense. Another reactive agent may perform
  * better in certain circumstances.
  */
 public class AstarPathGenerator implements TWPathGenerator {
 
-    /** The set of nodes that have been searched through */
-    private ArrayList closed = new ArrayList();
-    /** The set of nodes that we do not yet consider fully searched */
-    private SortedList open = new SortedList();
-    /** The map being searched */
-    private TWEnvironment map;
-    /** The maximum depth of search we're willing to accept before giving up */
-    private int maxSearchDistance;
-    /** The complete set of nodes across the map */
-    private Node[][] nodes;
-    /** True if we allow diaganol movement */
-    private boolean allowDiagMovement = false;
-    /** Reference to this agent, for looking in memory */
-    private TWAgent agent;
+    /**
+     * The set of nodes that have been searched through
+     */
+    private final ArrayList closed = new ArrayList();
+    /**
+     * The set of nodes that we do not yet consider fully searched
+     */
+    private final SortedList open = new SortedList();
+    /**
+     * The map being searched
+     */
+    private final TWEnvironment map;
+    /**
+     * The maximum depth of search we're willing to accept before giving up
+     */
+    private final int maxSearchDistance;
+    /**
+     * The complete set of nodes across the map
+     */
+    private final Node[][] nodes;
+    /**
+     * True if we allow diaganol movement
+     */
+    private final boolean allowDiagMovement = false;
+    /**
+     * Reference to this agent, for looking in memory
+     */
+    private final TWAgent agent;
+
+    /**
+     * Create a path finder
+     *
+     * @param heuristic         The heuristic used to determine the search order of the map
+     * @param map               The map to be searched
+     * @param maxSearchDistance The maximum depth we'll search before giving up
+     * @param allowDiagMovement True if the search should try diaganol movement
+     */
+    public AstarPathGenerator(TWEnvironment map, TWAgent agent, int maxSearchDistance) {
+        this.agent = agent;
+        this.map = map;
+        this.maxSearchDistance = maxSearchDistance;
+
+        //create the nodes used to store information about plan and map
+        nodes = new Node[map.getxDimension()][map.getyDimension()];
+        for (int x = 0; x < map.getxDimension(); x++) {
+            for (int y = 0; y < map.getyDimension(); y++) {
+                nodes[x][y] = new Node(x, y);
+            }
+        }
+    }
 
     /**
      * Use the Euclidian distance heuristic here (could also try manhattan)
@@ -60,27 +97,119 @@ public class AstarPathGenerator implements TWPathGenerator {
         return Math.sqrt((dx * dx) + (dy * dy));
     }
 
-    /**
-     * Create a path finder
-     *
-     * @param heuristic The heuristic used to determine the search order of the map
-     * @param map The map to be searched
-     * @param maxSearchDistance The maximum depth we'll search before giving up
-     * @param allowDiagMovement True if the search should try diaganol movement
-     */
-    public AstarPathGenerator(TWEnvironment map, TWAgent agent, int maxSearchDistance) {
+    public TWPath findPath(int sx, int sy, int tx, int ty, int decay) {
+        // easy first check, if the destination is blocked, we can't get there
+        if (agent.getMemory().isCellBlocked(tx, ty, decay)) {
+//        	System.out.println("$$$$$$$$BLOCKED$$$$$$$$ for " + agent.getName());
+            return null;
+        }
 
-        this.agent = agent;
-        this.map = map;
-        this.maxSearchDistance = maxSearchDistance;
+        // initial state for A*. The closed group is empty. Only the starting
+        // tile is in the open list and it's cost is zero, i.e. we're already there
+        nodes[sx][sy].cost = 0;
+        nodes[sx][sy].depth = 0;
+        closed.clear();
+        open.clear();
+        open.add(nodes[sx][sy]);
 
-        //create the nodes used to store information about plan and map
-        nodes = new Node[map.getxDimension()][map.getyDimension()];
-        for (int x = 0; x < map.getxDimension(); x++) {
-            for (int y = 0; y < map.getyDimension(); y++) {
-                nodes[x][y] = new Node(x, y);
+        nodes[tx][ty].parent = null;
+
+        // while we haven't found the goal and haven't exceeded our max search depth
+        int maxDepth = 0;
+        while ((maxDepth < maxSearchDistance) && (open.size() != 0)) {
+            // pull out the first node in our open list, this is determined to
+            // be the most likely to be the next step based on our heuristic
+            Node current = getFirstInOpen();
+            if (current == nodes[tx][ty]) {
+                break;
+            }
+
+            removeFromOpen(current);
+            addToClosed(current);
+
+            // search through all the neighbours of the current node evaluating
+            // them as next steps
+            for (int x = -1; x < 2; x++) {
+                for (int y = -1; y < 2; y++) {
+                    // not a neighbour, its the current tile
+                    if ((x == 0) && (y == 0)) {
+                        continue;
+                    }
+
+                    // if we're not allowing diaganol movement then only
+                    // one of x or y can be set
+                    if (!allowDiagMovement) {
+                        if ((x != 0) && (y != 0)) {
+                            continue;
+                        }
+                    }
+
+                    // determine the location of the neighbour and evaluate it
+                    int xp = x + current.x;
+                    int yp = y + current.y;
+
+
+                    //Check that the cell is valid (in bounds) and that according
+                    //to our memory the cell isn't blocked
+                    if (isValidLocation(sx, sy, xp, yp) && !agent.getMemory().isCellBlocked(xp, yp, decay)) {
+                        // the cost to get to this node is cost the current plus the movement
+                        // cost to reach this node. Note that the heursitic value is only used
+                        // in the sorted open list
+                        double nextStepCost = current.cost + getMovementCost(current.x, current.y, xp, yp);
+                        Node neighbour = nodes[xp][yp];
+                        neighbour.setVisited(true);
+
+                        // if the new cost we've determined for this node is lower than
+                        // it has been previously makes sure the node hasn't been discarded. We've
+                        // determined that there might have been a better path to get to
+                        // this node so it needs to be re-evaluated
+                        if (nextStepCost < neighbour.cost) {
+                            if (inOpenList(neighbour)) {
+                                removeFromOpen(neighbour);
+                            }
+                            if (inClosedList(neighbour)) {
+                                removeFromClosed(neighbour);
+                            }
+                        }
+
+                        // if the node hasn't already been processed and discarded then
+                        // reset it's cost to our current cost and add it as a next possible
+                        // step (i.e. to the open list)
+                        if (!inOpenList(neighbour) && !(inClosedList(neighbour))) {
+                            neighbour.cost = nextStepCost;
+                            neighbour.heuristic = getHeuristicCost(xp, yp, tx, ty);
+                            maxDepth = Math.max(maxDepth, neighbour.setParent(current));
+                            addToOpen(neighbour);
+                        }
+                    }
+                }
             }
         }
+
+        // since we've got an empty open list or we've run out of search
+        // there was no path. Just return null
+        if (nodes[tx][ty].parent == null) {
+//        	System.out.println("$$$$$$$$BLOCKED2$$$$$$$$");
+            return null;
+        }
+
+        // At this point we've definitely found a path so we can uses the parent
+        // references of the nodes to find out way from the target location back
+        // to the start recording the nodes on the way.
+        TWPath path = new TWPath(tx, ty);
+        Node target = nodes[tx][ty];
+        //skip the goal as the step before will tell us how to get there.
+        target = target.parent;
+        while (target != nodes[sx][sy]) {
+            path.prependStep(target.x, target.y);
+            target = target.parent;
+        }
+
+        //in our type of plan we don't include current location.
+        path.prependStep(sx, sy);
+
+        // thats it, we have our path
+        return path;
     }
 
     /**
@@ -183,7 +312,7 @@ public class AstarPathGenerator implements TWPathGenerator {
         // At this point we've definitely found a path so we can uses the parent
         // references of the nodes to find out way from the target location back
         // to the start recording the nodes on the way.
-        TWPath path = new TWPath(tx,ty);
+        TWPath path = new TWPath(tx, ty);
         Node target = nodes[tx][ty];
         //skip the goal as the step before will tell us how to get there.
         target = target.parent;
@@ -271,12 +400,12 @@ public class AstarPathGenerator implements TWPathGenerator {
      *
      * @param sx The starting x coordinate
      * @param sy The starting y coordinate
-     * @param x The x coordinate of the location to check
-     * @param y The y coordinate of the location to check
+     * @param x  The x coordinate of the location to check
+     * @param y  The y coordinate of the location to check
      * @return True if the location is valid
      */
     protected boolean isValidLocation(int sx, int sy, int x, int y) {
-        return (map.isValidLocation(x,y) && ((sx != x) || (sy != y)));
+        return (map.isValidLocation(x, y) && ((sx != x) || (sy != y)));
 
     }
 
@@ -284,10 +413,10 @@ public class AstarPathGenerator implements TWPathGenerator {
      * Get the cost to move through a given location
      *
      * @param mover The entity that is being moved
-     * @param sx The x coordinate of the tile whose cost is being determined
-     * @param sy The y coordiante of the tile whose cost is being determined
-     * @param tx The x coordinate of the target location
-     * @param ty The y coordinate of the target location
+     * @param sx    The x coordinate of the tile whose cost is being determined
+     * @param sy    The y coordiante of the tile whose cost is being determined
+     * @param tx    The x coordinate of the target location
+     * @param ty    The y coordinate of the target location
      * @return The cost of movement through the given tile
      */
     public double getMovementCost(int sx, int sy, int tx, int ty) {
@@ -299,10 +428,10 @@ public class AstarPathGenerator implements TWPathGenerator {
      * order the locations are processed.
      *
      * @param mover The entity that is being moved
-     * @param x The x coordinate of the tile whose cost is being determined
-     * @param y The y coordiante of the tile whose cost is being determined
-     * @param tx The x coordinate of the target location
-     * @param ty The y coordinate of the target location
+     * @param x     The x coordinate of the tile whose cost is being determined
+     * @param y     The y coordiante of the tile whose cost is being determined
+     * @param tx    The x coordinate of the target location
+     * @param ty    The y coordinate of the target location
      * @return The heuristic cost assigned to the tile
      */
     public double getHeuristicCost(int x, int y, int tx, int ty) {
@@ -316,8 +445,10 @@ public class AstarPathGenerator implements TWPathGenerator {
      */
     private class SortedList {
 
-        /** The list of elements */
-        private ArrayList list = new ArrayList();
+        /**
+         * The list of elements
+         */
+        private final ArrayList list = new ArrayList();
 
         /**
          * Retrieve the first element from the list
@@ -379,21 +510,33 @@ public class AstarPathGenerator implements TWPathGenerator {
      */
     protected class Node implements Comparable {
 
-        /** The x coordinate of the node */
-        private int x;
-        /** The y coordinate of the node */
-        private int y;
-        /** The path cost for this node */
+        /**
+         * The x coordinate of the node
+         */
+        private final int x;
+        /**
+         * The y coordinate of the node
+         */
+        private final int y;
+        /**
+         * The path cost for this node
+         */
         private double cost;
-        /** The parent of this node, how we reached it in the search */
+        /**
+         * The parent of this node, how we reached it in the search
+         */
         private Node parent;
-        /** The heuristic cost of this node */
+        /**
+         * The heuristic cost of this node
+         */
         private double heuristic;
-        /** The search depth of this node */
+        /**
+         * The search depth of this node
+         */
         private int depth;
-        /** 
-         * In the original code, visited was part of the map. However, 
-         * because some implementations may not use path finding (reactive) 
+        /**
+         * In the original code, visited was part of the map. However,
+         * because some implementations may not use path finding (reactive)
          * I think it better to keep it here. Note, this is only used for debugging.
          */
         private boolean visited;

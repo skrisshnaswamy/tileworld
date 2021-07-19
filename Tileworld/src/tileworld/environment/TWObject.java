@@ -1,10 +1,12 @@
 /**
- * 
+ *
  */
 package tileworld.environment;
 
 import sim.util.Int2D;
 import tileworld.Parameters;
+import tileworld.planners.TWPath;
+
 
 /**
  * TWObject
@@ -18,54 +20,75 @@ import tileworld.Parameters;
  * Description: a class which is represent a transient entity in Tileworld (i.e., one with a lifetime).
  *
  */
-public class TWObject extends TWEntity{
+public class TWObject extends TWEntity implements Comparable<TWObject> {
 
-	protected static final int lifeTime = Parameters.lifeTime;
+    protected static final int lifeTime = Parameters.lifeTime;
 
-	private double creationTime;
-	private double dTime;
+    private Double utility;
+    private TWPath pathTo;
+    private double creationTime;
+    private double dTime;
 
 
-	/**
-	 * @return the deathTime
-	 */
-	public double getDeathTime() {
-		return dTime;
-	}
+    /**
+     * @param creationTime
+     * @param deathTime
+     */
+    public TWObject(int x, int y, TWEnvironment env, double creationTime, double deathTime) {
+        super(x, y, env);
+        this.creationTime = creationTime;
+        this.dTime = deathTime;
+    }
 
-	/**
-	 * @param d the deathTime to set
-	 */
-	public void setDeathTime(double d) {
-		this.dTime = d;
-	}
+    public TWObject(Int2D pos, TWEnvironment env, Double creationTime, Double deathTime) {
+        this(pos.x, pos.y, env, creationTime, deathTime);
+    }
 
-	/**
-	 * @param creationTime
-	 * @param deathTime
-	 */
-	public TWObject(int x, int y, TWEnvironment env, double creationTime, double deathTime) {
-		super(x,y,env);
-		this.creationTime = creationTime;
-		this.dTime = deathTime;
-	}
+    public TWObject() {
+    }
 
-	public TWObject(Int2D pos, TWEnvironment env, Double creationTime, Double deathTime) {
-		this(pos.x,pos.y,env,creationTime,deathTime);
-	}
+    /**
+     * @return the deathTime
+     */
+    public double getDeathTime() {
+        return dTime;
+    }
 
-	public double getTimeLeft(double timeNow){
-		return dTime - timeNow;
-	}
+    /**
+     * @param d the deathTime to set
+     */
+    public void setDeathTime(double d) {
+        this.dTime = d;
+    }
 
-	public TWObject(){
-	}
+    public double getTimeLeft(double timeNow) {
+        return dTime - timeNow;
+    }
 
-	@Override
-	protected void move(TWDirection d) {
-		throw new UnsupportedOperationException("TWObjects are not movable.");
-	}
+    @Override
+    protected void move(TWDirection d) {
+        throw new UnsupportedOperationException("TWObjects are not movable.");
+    }
 
-	
+    @Override
+    public int compareTo(TWObject o) {
+        return o.utility.compareTo(this.utility);
+    }
+
+    public TWPath getPathTo() {
+        return pathTo;
+    }
+
+    public void setPathTo(TWPath pathTo) {
+        this.pathTo = pathTo;
+    }
+
+    public Double getUtility() {
+        return utility;
+    }
+
+    public void setUtility(Double utility) {
+        this.utility = utility;
+    }
 
 }

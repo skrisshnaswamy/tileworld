@@ -4,25 +4,25 @@
  */
 package tileworld.planners;
 
+import tileworld.environment.TWDirection;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
-import tileworld.environment.TWDirection;
 
 /**
  * TWPath
  *
  * @author michaellees
  * Created: Apr 22, 2010
- *
+ * <p>
  * Copyright michaellees 2010
- *
- *
+ * <p>
+ * <p>
  * Description:
- *
+ * <p>
  * A class to store a path which can be used to move the agent
- *
+ * <p>
  * The path is a linked list of PathSteps, Each path step is and x,y coordinate and a direction.
- *
  */
 public class TWPath {
 
@@ -58,18 +58,20 @@ public class TWPath {
 
     /**
      * Modifys the path with a new path subset, useful when slight modification is needed.
+     *
      * @param pathSubSet
      * @param startIndex
      */
     public void modifyPath(ArrayList<TWPathStep> pathSubSet, int startIndex) {
         for (int i = 0; i < pathSubSet.size(); i++) {
-            path.set(i+startIndex, pathSubSet.get(i));
+            path.set(i + startIndex, pathSubSet.get(i));
         }
     }
 
     /**
      * Gets step of plan at specified index, not used and is expensive in linked list
      * Her for completeness.
+     *
      * @param index
      * @return
      */
@@ -119,7 +121,7 @@ public class TWPath {
      * Returns the direction from startx,starty to goalx, goaly
      * We assume that the two coordinates can only differ in one direction along
      * one dimension. ie., 4 options x++, x--, y++, y--
-     *
+     * <p>
      * We do acount for the situation where they are the same and return z;
      *
      * @param sx
@@ -158,6 +160,7 @@ public class TWPath {
 
     /**
      * Used for executing the path, removes and returns the first step in the plan.
+     *
      * @return
      */
     public TWPathStep popNext() {
@@ -166,5 +169,9 @@ public class TWPath {
 
     public boolean hasNext() {
         return this.path.peekFirst() != null;
+    }
+
+    public int size() {
+        return path.size();
     }
 }

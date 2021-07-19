@@ -1,23 +1,24 @@
 /**
- * 
+ *
  */
 package tileworld.environment;
 
 import ec.util.MersenneTwisterFast;
-import java.lang.reflect.InvocationTargetException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import sim.util.Bag;
 import sim.util.Int2D;
 import tileworld.Parameters;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * TWObjectCreator
- * 
+ *
  * @author michaellees Created: Apr 16, 2010
- * 
+ *
  * Copyright michaellees 2010
- * 
+ *
  * Description:
  *
  * A class to create all types of TWObjects, the generic type T is the type of
@@ -29,8 +30,8 @@ public class TWObjectCreator<T> {
     double dev;
     MersenneTwisterFast random;
     TWEnvironment env;
-    private T instance;
     Class[] classes = {Int2D.class, TWEnvironment.class, Double.class, Double.class};
+    private final T instance;
 
     /**
      * @param mean
@@ -38,7 +39,7 @@ public class TWObjectCreator<T> {
      * @param tileCreationDistribution
      */
     public TWObjectCreator(double mean, double dev,
-            Bag context, MersenneTwisterFast random, T inst, TWEnvironment env) {
+                           Bag context, MersenneTwisterFast random, T inst, TWEnvironment env) {
         super();
         this.mean = mean;
         this.dev = dev;
@@ -67,12 +68,12 @@ public class TWObjectCreator<T> {
                 e.printStackTrace();
                 throw e;
             }
-            items.add((TWObject) o);
+            items.add(o);
         }
 
         if (numberObjects - Math.floor(numberObjects) > this.random.nextDouble()) {
             try {
-                items.add((TWObject) create((Class<T>) instance.getClass(), time));
+                items.add(create((Class<T>) instance.getClass(), time));
             } catch (InstantiationException e) {
                 e.printStackTrace();
                 throw e;
@@ -81,7 +82,6 @@ public class TWObjectCreator<T> {
                 throw e;
             }
         }
-
 
 
         return items;

@@ -1,12 +1,13 @@
 /**
- * 
+ *
  */
 package tileworld.environment;
 
-import java.awt.Color;
 import sim.portrayal.Portrayal;
 import sim.portrayal.simple.RectanglePortrayal2D;
 import sim.util.Int2D;
+
+import java.awt.*;
 
 /**
  * TWObstacle
