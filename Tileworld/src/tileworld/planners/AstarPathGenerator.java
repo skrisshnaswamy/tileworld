@@ -68,8 +68,7 @@ public class AstarPathGenerator implements TWPathGenerator {
      * @param maxSearchDistance The maximum depth we'll search before giving up
      * @param allowDiagMovement True if the search should try diaganol movement
      */
-    public AstarPathGenerator (TWEnvironment map, TWAgent agent, int maxSearchDistance) {
-
+    public AstarPathGenerator(TWEnvironment map, TWAgent agent, int maxSearchDistance) {
         this.agent = agent;
         this.map = map;
         this.maxSearchDistance = maxSearchDistance;
@@ -313,6 +312,7 @@ public class AstarPathGenerator implements TWPathGenerator {
         // thats it, we have our path
         return path;
     }
+
     /**
      * Get the first element from the open list. This is the next
      * one to be searched.

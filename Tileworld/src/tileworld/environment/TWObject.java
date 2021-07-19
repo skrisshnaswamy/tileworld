@@ -7,6 +7,7 @@ import sim.util.Int2D;
 import tileworld.Parameters;
 import tileworld.planners.TWPath;
 
+
 /**
  * TWObject
  *
@@ -28,7 +29,7 @@ public class TWObject extends TWEntity implements Comparable<TWObject>{
 	private double creationTime;
 	private double dTime;
 	
-	
+
 	/**
 	 * @return the deathTime
 	 */
@@ -53,7 +54,7 @@ public class TWObject extends TWEntity implements Comparable<TWObject>{
 		this.dTime = deathTime;
 	}
 
-        public TWObject(Int2D pos, TWEnvironment env, Double creationTime, Double deathTime) {
+  public TWObject(Int2D pos, TWEnvironment env, Double creationTime, Double deathTime) {
 		this(pos.x,pos.y,env,creationTime,deathTime);
 	}
 	
@@ -61,12 +62,12 @@ public class TWObject extends TWEntity implements Comparable<TWObject>{
 		return dTime - timeNow;
 	}
 
-        public TWObject(){}
+  public TWObject(){}
 
-    @Override
-    protected void move(TWDirection d) {
+  @Override
+  protected void move(TWDirection d) {
         throw new UnsupportedOperationException("TWObjects are not movable.");
-    }
+  }
 
 	@Override
 	public int compareTo(TWObject o) {

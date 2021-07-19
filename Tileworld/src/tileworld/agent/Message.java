@@ -5,7 +5,6 @@ public class Message {
 	private String to; // the recepient
 	private String message; // the message
 	
-	//CCC
 	private int x;
 	private int y;
 	private String request; // M2
@@ -98,4 +97,5 @@ public class Message {
 	public TWAgentPercept getResponse(){return response;}
 	public int getX2(){return x2;}
 	public int getY2(){return y2;}
+
 }

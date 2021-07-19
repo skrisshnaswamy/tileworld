@@ -4,7 +4,11 @@
 package tileworld.environment;
 
 import java.util.ArrayList;
+
 import java.util.HashMap;
+
+import java.util.concurrent.ThreadLocalRandom;
+
 
 import sim.engine.SimState;
 import sim.engine.Steppable;
@@ -17,6 +21,7 @@ import tileworld.agent.Message;
 
 import tileworld.agent.TWAgent;
 import tileworld.agent.SimpleGreedyTWAgent;
+
 
 /**
  * TWEnvironment
@@ -115,6 +120,7 @@ public class TWEnvironment extends SimState implements Steppable {
         this.parameters = new ArrayList<HashMap<String,Double>>();
         this.parameters.add(parameters.get(0));
         this.parameters.add(parameters.get(1));
+
         tiles = new Bag();
         holes = new Bag();
         obstacles = new Bag();
@@ -122,6 +128,7 @@ public class TWEnvironment extends SimState implements Steppable {
         messages = new ArrayList<Message>();
     }
 
+  
     @Override
     public void start() {
         super.start();
@@ -135,7 +142,6 @@ public class TWEnvironment extends SimState implements Steppable {
         //The environment is also stepped each step
 
         schedule.scheduleRepeating(this, 1, 1.0);
-
         Int2D pos = this.generateRandomLocation();
         int greedyAgentsDeployed = 3, idx = 1;
         createAgent(new SimpleGreedyTWAgent("007", pos.getX(), pos.getY(), this, Parameters.defaultFuelLevel, idx++, greedyAgentsDeployed));
@@ -161,7 +167,6 @@ public class TWEnvironment extends SimState implements Steppable {
 
     private void createTWObjects(double time) {
         try {
-
             tiles.addAll(tileCreator.createTWObjects(time));
                 //holes.addAll(holeCreator.createTWObjects(time));
             Bag bag = holeCreator.createTWObjects(time);
@@ -208,12 +213,13 @@ public class TWEnvironment extends SimState implements Steppable {
     }
 
     public void step(SimState state) {
-        double time = state.schedule.getTime();
+    	double time = state.schedule.getTime();
         // create new objects
         createTWObjects(time);
         // remove old objects (dead ones)
         removeTWObjects(time);
     }
+
 
     /**
      * @return the grid
@@ -245,6 +251,7 @@ public class TWEnvironment extends SimState implements Steppable {
     		return false;
     	return true;
     }
+
  
     /**
      * @return the xDimension
@@ -411,6 +418,7 @@ public class TWEnvironment extends SimState implements Steppable {
     	return totalHolesCreated;
     }
     
+
     public int getReward(){
     	return reward;
     }
@@ -418,5 +426,4 @@ public class TWEnvironment extends SimState implements Steppable {
     public void increaseReward(){
     	reward += 1;
     }
-
 }

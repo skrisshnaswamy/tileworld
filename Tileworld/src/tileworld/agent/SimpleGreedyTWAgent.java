@@ -10,6 +10,18 @@ import tileworld.planners.AstarPathGenerator;
 import tileworld.planners.TWPath;
 import tileworld.planners.TWPathStep;
 
+import tileworld.environment.TWDirection;
+import tileworld.environment.TWEntity;
+import tileworld.environment.TWEnvironment;
+import tileworld.environment.TWFuelStation;
+import tileworld.environment.TWHole;
+import tileworld.environment.TWTile;
+import tileworld.exceptions.CellBlockedException;
+import tileworld.exceptions.InsufficientFuelException;
+import tileworld.planners.*;
+import tileworld.planners.PatrolPath.Shape;
+
+import java.lang.Math;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Random;
@@ -41,7 +53,8 @@ public class SimpleGreedyTWAgent extends TWAgent {
     int ybottom = 1;
     int idx = 1;
     int agentsCount = 1;
-    ArrayList<String> memcoords = new ArrayList<>();
+
+  ArrayList<String> memcoords = new ArrayList<>();
     boolean isFuelingStnLocKnown = false;
 
     public enum ClosestCorner {
@@ -188,7 +201,7 @@ public class SimpleGreedyTWAgent extends TWAgent {
         isInvalidCoords();
         if (!isFuelingStnLocKnown) {
             System.out.println(this.getName() + ": Searching fueling station... Current fuel level: " + this.getFuelLevel());
-            isFuelingStnLocKnown = findFuelingStation();
+           isFuelingStnLocKnown = findFuelingStation();
         }
 
         System.out.println("Greedy Agent: " + name + " Score: " + this.score + " at ("
@@ -296,6 +309,7 @@ public class SimpleGreedyTWAgent extends TWAgent {
                     this.move(eachStep.getDirection());
                     fuelFound = checkMsgForFuelStation() || locateFuelingStation();
                     if (fuelFound)
+
                         return true;
                 } catch (CellBlockedException e) {
                     e.printStackTrace();
@@ -640,6 +654,7 @@ public class SimpleGreedyTWAgent extends TWAgent {
             }
         }
     }
+
 
     private boolean checkMsgForFuelStation() {
         for (Message m : this.getMsg()) {

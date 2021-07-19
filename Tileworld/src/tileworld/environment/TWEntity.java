@@ -53,7 +53,6 @@ public abstract class TWEntity{
     protected abstract void move(TWDirection d) throws InsufficientFuelException, CellBlockedException;
 
     protected void setLocation(int xpos, int ypos){
-
         x=xpos;y=ypos;
         //Set location of entity when it's created
         if(environment != null)
@@ -116,6 +115,9 @@ public abstract class TWEntity{
     }
 
 
+    /**
+     * return True if a is closer than b
+    */
     public boolean closerTo(TWEntity a, TWEntity b){
         return this.getDistanceTo(a) < getDistanceTo(b);
     }
@@ -124,6 +126,5 @@ public abstract class TWEntity{
     public boolean sameLocation(TWEntity a){
         return (this.x == a.x && this.y == a.y);
     }
-
 
 }

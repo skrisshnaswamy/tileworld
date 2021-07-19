@@ -6,8 +6,6 @@ import java.util.HashSet;
 import java.util.List;
 import javax.swing.text.html.HTMLDocument;
 
-//import org.omg.CORBA.Environment;
-
 import sim.engine.Schedule;
 import sim.field.grid.ObjectGrid2D;
 import sim.util.Bag;
@@ -356,3 +354,4 @@ public class TWAgentWorkingMemory {
 		return (e instanceof TWObstacle);
 	}
 }
+

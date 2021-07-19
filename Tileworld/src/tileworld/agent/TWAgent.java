@@ -18,6 +18,7 @@ import tileworld.environment.TWTile;
 import tileworld.exceptions.CellBlockedException;
 import tileworld.exceptions.InsufficientFuelException;
 
+
 /**
  * TWAgent
  *
@@ -37,13 +38,14 @@ public abstract class TWAgent extends TWEntity implements Steppable {
     protected int score;
 
 	public static boolean DEBUG = false;
+
     public int getScore() {
         return score;
     }
 
     public TWAgent(int xpos, int ypos, TWEnvironment env, double fuelLevel) {
         super(xpos, ypos, env);
-        
+
         this.score = 0;
         this.fuelLevel = fuelLevel;
         this.carriedTiles = new ArrayList<TWTile>();
@@ -97,6 +99,7 @@ public abstract class TWAgent extends TWEntity implements Steppable {
     //----------------------------------------------------------------
     //----------------------------------------------------------------
     //OTHER METHODS YOU MAY WANT TO USE (You can also modify where appropriate)
+
     /**
      * Call this to move your agent in a specified direction
      */
@@ -104,12 +107,11 @@ public abstract class TWAgent extends TWEntity implements Steppable {
     protected void move(TWDirection d) throws CellBlockedException {
         if (fuelLevel <= 0) {
         	System.out.println("Agent ran out of fuel, Score: " + this.score);
-            //Bad news, causes runtime exception
+           //Bad news, causes runtime exception
         	//throw new InsufficientFuelException("Agent ran out of fuel, Score: " + this.score);
         } else {
         	moveDir(d);
         }
-        
     }
 
     /**
@@ -164,6 +166,7 @@ public abstract class TWAgent extends TWEntity implements Steppable {
      *
      */
     protected final void refuel() {
+
     	if(this.getEnvironment().inFuelStation(this)) {
     		this.fuelLevel = Parameters.defaultFuelLevel;
     		System.out.println("Refuel.....");
@@ -208,6 +211,7 @@ public abstract class TWAgent extends TWEntity implements Steppable {
      */
     public final void step(SimState state) {
         this.sense();
+
         TWThought thought = this.think();
         this.act(thought);
     }
@@ -243,6 +247,7 @@ public abstract class TWAgent extends TWEntity implements Steppable {
     {
     	return carriedTiles.size();
     }
+
     /**
      * Returns the working memory of this agent
      * @return working memory
@@ -258,7 +263,6 @@ public abstract class TWAgent extends TWEntity implements Steppable {
      */
     @Override
     protected void setLocation(int xpos, int ypos) {
-
         x = xpos;
         y = ypos;
         //Set location of entity when it's created
@@ -281,7 +285,5 @@ public abstract class TWAgent extends TWEntity implements Steppable {
     public ArrayList<Message> getMsg(){
         return this.getEnvironment().getMessages();
     }
-
-
 
 }
