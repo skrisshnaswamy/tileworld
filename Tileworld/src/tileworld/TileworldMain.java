@@ -6,6 +6,7 @@ package tileworld;
 
 import sim.engine.SimState;
 import tileworld.environment.TWEnvironment;
+
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
@@ -14,44 +15,43 @@ import java.util.concurrent.TimeUnit;
  *
  * @author michaellees
  * Created: Apr 19, 2010
- *
+ * <p>
  * Copyright michaellees 2010
- *
+ * <p>
  * Description:
- *
- * This is currently not used, but provides ways to run headless (non-gui) 
+ * <p>
+ * This is currently not used, but provides ways to run headless (non-gui)
  * versions of tileworld, including parameter sweeps.
- * 
  */
 public class TileworldMain {
-	
-	public static void main(String args[]) throws InterruptedException {
-		int overallScore = 0; 
-		int iteration = 10;
-		for(int i = 0; i<iteration; i++) {
-			int seed = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE);
-			System.out.println("Seed: "+seed);
-			TWEnvironment tw = new TWEnvironment(seed);
-			tw.start();
 
-			long steps = 0;
+    public static void main(String[] args) throws InterruptedException {
+        int overallScore = 0;
+        int iteration = 10;
+        for (int i = 0; i < iteration; i++) {
+            int seed = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE);
+            System.out.println("Seed: " + seed);
+            TWEnvironment tw = new TWEnvironment(seed);
+            tw.start();
 
-			while (steps < Parameters.endTime) {
-				if (!tw.schedule.step(tw)) {
-					break;
-				}
-				steps = tw.schedule.getSteps();
-			}
-			System.out.println("The final reward is: "+tw.getReward());
-			overallScore+=tw.getReward();
-			tw.finish();
-			TimeUnit.SECONDS.sleep(1);
-		}
-		System.out.println("The average reward is: "+((float)overallScore/iteration));
-		System.exit(0);  // make sure any threads finish up
+            long steps = 0;
+
+            while (steps < Parameters.endTime) {
+                if (!tw.schedule.step(tw)) {
+                    break;
+                }
+                steps = tw.schedule.getSteps();
+            }
+            System.out.println("The final reward is: " + tw.getReward());
+            overallScore += tw.getReward();
+            tw.finish();
+            TimeUnit.SECONDS.sleep(1);
+        }
+        System.out.println("The average reward is: " + ((float) overallScore / iteration));
+        System.exit(0);  // make sure any threads finish up
     }
 
-    public static void main4(String args[]) {
+    public static void main4(String[] args) {
 
         TWEnvironment tw = new TWEnvironment(Parameters.seed);
         tw.start();
@@ -68,13 +68,14 @@ public class TileworldMain {
 //                System.out.println("Steps: " + steps + " Time: " + tw.schedule.time());
 //            }
         }
-        System.out.println("The final reward is: "+tw.getReward());
+        System.out.println("The final reward is: " + tw.getReward());
         tw.finish();
         System.exit(0);  // make sure any threads finish up
     }
 
     /**
      * Main method for restoring form checkpoints
+     *
      * @param args
      */
     public static void main2(String[] args) {
@@ -128,42 +129,43 @@ public class TileworldMain {
     /**
      * Use the standard doLoop created in SimState
      * This method takes some standard argument format for non GUI runs...
-     *
+     * <p>
      * Format:           java tileworld.Tileworld \
-    [-help] [-checkpoint C] [-repeat R] [-seed S] \
-    [-for F] [-until U] [-time T] [-docheckpoint D]
-
-    -help             Shows this message.
-
-    -repeat R         Long value > 0: Runs the job R times. The random seed for
-    each job is the provided -seed plus the job# (starting at 0).
-    Default: runs once only: job number is 0.
-
-    -checkpoint C     String: loads the simulation from file C for
-    job# 0. Further jobs are started new using -seed as normal.
-    Default: starts a new simulation rather than loading one.
-
-    -until U          Double value >= 0: the simulation must stop when the
-    simulation time U has been reached or exceeded.
-    Default: don't stop.
-
-    -for N            Long value >= 0: the simulation must stop when N
-    simulation steps have transpired.
-    Default: don't stop.
-
-    -seed S           Long value not 0: the random number generator seed.
-    Default: the system time in milliseconds.
-
-    -time T           Long value >= 0: print a timestamp every T simulation steps.
-    If 0, nothing is printed.
-    Default: auto-chooses number of steps based on how many
-    appear to fit in one second of wall clock time.  Rounds to
-    one of 1, 2, 5, 10, 25, 50, 100, 250, 500, 1000, 2500, etc.
-
-    -docheckpoint D   Long value > 0: checkpoint every D simulation steps.
-    Default: never.
-    Checkpoints files named
-    <steps>.<job#>.Tutorial1.checkpoint
+     * [-help] [-checkpoint C] [-repeat R] [-seed S] \
+     * [-for F] [-until U] [-time T] [-docheckpoint D]
+     * <p>
+     * -help             Shows this message.
+     * <p>
+     * -repeat R         Long value > 0: Runs the job R times. The random seed for
+     * each job is the provided -seed plus the job# (starting at 0).
+     * Default: runs once only: job number is 0.
+     * <p>
+     * -checkpoint C     String: loads the simulation from file C for
+     * job# 0. Further jobs are started new using -seed as normal.
+     * Default: starts a new simulation rather than loading one.
+     * <p>
+     * -until U          Double value >= 0: the simulation must stop when the
+     * simulation time U has been reached or exceeded.
+     * Default: don't stop.
+     * <p>
+     * -for N            Long value >= 0: the simulation must stop when N
+     * simulation steps have transpired.
+     * Default: don't stop.
+     * <p>
+     * -seed S           Long value not 0: the random number generator seed.
+     * Default: the system time in milliseconds.
+     * <p>
+     * -time T           Long value >= 0: print a timestamp every T simulation steps.
+     * If 0, nothing is printed.
+     * Default: auto-chooses number of steps based on how many
+     * appear to fit in one second of wall clock time.  Rounds to
+     * one of 1, 2, 5, 10, 25, 50, 100, 250, 500, 1000, 2500, etc.
+     * <p>
+     * -docheckpoint D   Long value > 0: checkpoint every D simulation steps.
+     * Default: never.
+     * Checkpoints files named
+     * <steps>.<job#>.Tutorial1.checkpoint
+     *
      * @param args
      */
     public static void main3(String[] args) {

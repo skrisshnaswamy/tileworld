@@ -10,18 +10,6 @@ import tileworld.planners.AstarPathGenerator;
 import tileworld.planners.TWPath;
 import tileworld.planners.TWPathStep;
 
-import tileworld.environment.TWDirection;
-import tileworld.environment.TWEntity;
-import tileworld.environment.TWEnvironment;
-import tileworld.environment.TWFuelStation;
-import tileworld.environment.TWHole;
-import tileworld.environment.TWTile;
-import tileworld.exceptions.CellBlockedException;
-import tileworld.exceptions.InsufficientFuelException;
-import tileworld.planners.*;
-import tileworld.planners.PatrolPath.Shape;
-
-import java.lang.Math;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Random;
@@ -31,34 +19,51 @@ import java.util.logging.Logger;
 public class SimpleGreedyTWAgent extends TWAgent {
 
     private static final long serialVersionUID = 1L;
-    private String name;
-    private TWPath path;
-    private Random randomGenerator = new Random();
-    private AstarPathGenerator pathGenerator = new AstarPathGenerator(
-            this.getEnvironment(), this, 5000);
     private static final Logger LOGGER = Logger
             .getLogger(Logger.GLOBAL_LOGGER_NAME);
-    private long startTime;
-    private int FUEL_LOW = 50;
-    private int FUEL_CRITICAL = 25;
-    private int TILE_CAP = 3;
-    private TWAction prevAction = null;
-    private int canTeleport = 10;
-
-    // Communication variables
-    private ClosestCorner closestCorner = ClosestCorner.BOTTOM_RIGHT;
     int xleft = 0;
     int ytop = 0;
     int xright = 1;
     int ybottom = 1;
     int idx = 1;
     int agentsCount = 1;
-
-  ArrayList<String> memcoords = new ArrayList<>();
+    ArrayList<String> memcoords = new ArrayList<>();
     boolean isFuelingStnLocKnown = false;
+    private final String name;
+    private TWPath path;
+    private final Random randomGenerator = new Random();
+    private final AstarPathGenerator pathGenerator = new AstarPathGenerator(
+            this.getEnvironment(), this, 5000);
+    private final long startTime;
+    private int FUEL_LOW = 50;
+    private int FUEL_CRITICAL = 25;
+    private final int TILE_CAP = 3;
+    private TWAction prevAction = null;
+    private int canTeleport = 10;
+    // Communication variables
+    private ClosestCorner closestCorner = ClosestCorner.BOTTOM_RIGHT;
 
-    public enum ClosestCorner {
-        BOTTOM_LEFT, BOTTOM_RIGHT, TOP_LEFT, TOP_RIGHT
+    /**
+     * @param xpos      initial position of the agent
+     * @param ypos
+     * @param //id      identifier of the agent
+     * @param env       environment
+     * @param fuelLevel fuel level
+     */
+    public SimpleGreedyTWAgent(String name, int xpos, int ypos, TWEnvironment env,
+                               double fuelLevel, int idx, int agentsCount) {
+        super(xpos, ypos, env, fuelLevel);
+        this.name = name;
+        this.idx = idx;
+        this.agentsCount = agentsCount;
+        System.out.println("Agent" + this.idx + ": " + this.getName() + " @" + "(" + xpos + "," + ypos + ")");
+        this.computeFuelLimits();
+        startTime = System.nanoTime();
+        LOGGER.setLevel(Level.INFO);
+        this.xleft = this.sensor.sensorRange - 1;
+        this.ytop = this.sensor.sensorRange - 1;
+        this.xright = this.getEnvironment().getxDimension() - this.sensor.sensorRange;
+        this.ybottom = this.getEnvironment().getyDimension() - this.sensor.sensorRange;
     }
 
     public boolean canCarry() {
@@ -76,29 +81,6 @@ public class SimpleGreedyTWAgent extends TWAgent {
     @Override
     public String getName() {
         return "(Greedy) Agent " + this.name;
-    }
-
-    /**
-     * @param xpos      initial position of the agent
-     * @param ypos
-     * @param //id      identifier of the agent
-     * @param env       environment
-     * @param fuelLevel fuel level
-     */
-    public SimpleGreedyTWAgent(String name, int xpos, int ypos, TWEnvironment env,
-                         double fuelLevel, int idx, int agentsCount) {
-        super(xpos, ypos, env, fuelLevel);
-        this.name = name;
-        this.idx = idx;
-        this.agentsCount = agentsCount;
-        System.out.println("Agent" + this.idx  + ": " + this.getName() + " @" + "(" + xpos + "," + ypos + ")");
-        this.computeFuelLimits();
-        startTime = System.nanoTime();
-        LOGGER.setLevel(Level.INFO);
-        this.xleft = this.sensor.sensorRange - 1;
-        this.ytop = this.sensor.sensorRange - 1;
-        this.xright = this.getEnvironment().getxDimension() - this.sensor.sensorRange;
-        this.ybottom = this.getEnvironment().getyDimension() - this.sensor.sensorRange;
     }
 
     private void computeFuelLimits() {
@@ -131,7 +113,7 @@ public class SimpleGreedyTWAgent extends TWAgent {
         try {
             if (!this.getMemory().isCellBlocked(this.getX() + dir.dx, this.getY() + dir.dy))
                 cellNotBlocked = true;
-        } catch (Exception ex){
+        } catch (Exception ex) {
             cellNotBlocked = false;
         }
         return withinBoundary && extraCond && cellNotBlocked;
@@ -148,18 +130,18 @@ public class SimpleGreedyTWAgent extends TWAgent {
         int xmax = Math.min(this.getX() + this.sensor.sensorRange, this.getEnvironment().getxDimension() - 1);
         int ymin = Math.max(this.getY() - this.sensor.sensorRange, 0);
         int ymax = Math.min(this.getY() + this.sensor.sensorRange, this.getEnvironment().getyDimension() - 1);
-        for(int x0 = xmin; x0 <= xmax; ++x0) {
+        for (int x0 = xmin; x0 <= xmax; ++x0) {
             for (int y0 = ymin; y0 <= ymax; ++y0) {
                 TWEntity e = (TWEntity) objectGrid.get(x0, y0);
                 boolean obj = this.getEnvironment().doesCellContainObject(x0, y0);
-                if (obj && (e instanceof  TWTile || e instanceof TWHole)) {
+                if (obj && (e instanceof TWTile || e instanceof TWHole)) {
                     objCount++;
                     this.getMemory().updateMemory(e, x0, y0);
                 }
                 if (obj && (e instanceof TWFuelStation)) {
                     if (!memcoords.contains(x0 + ":" + y0)) {
                         System.out.println(this.getName() + ": Fueling station found @ (" + x0 + "," + y0 + ")");
-                            memcoords.add(x0 + ":" + y0);
+                        memcoords.add(x0 + ":" + y0);
                         this.sendMsg(TWAction.REFUEL.name() + " " + x0 + " " + y0);
                         this.getMemory().updateMemory(e, x0, y0);
                         fuelX = x0;
@@ -185,8 +167,7 @@ public class SimpleGreedyTWAgent extends TWAgent {
         ) {
             LOGGER.warning("out of border");
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -201,7 +182,7 @@ public class SimpleGreedyTWAgent extends TWAgent {
         isInvalidCoords();
         if (!isFuelingStnLocKnown) {
             System.out.println(this.getName() + ": Searching fueling station... Current fuel level: " + this.getFuelLevel());
-           isFuelingStnLocKnown = findFuelingStation();
+            isFuelingStnLocKnown = findFuelingStation();
         }
 
         System.out.println("Greedy Agent: " + name + " Score: " + this.score + " at ("
@@ -219,7 +200,7 @@ public class SimpleGreedyTWAgent extends TWAgent {
         } else if (obj && (e instanceof TWHole) && this.hasTile()) {
             act = TWAction.PUTDOWN;
             LOGGER.info("Action: PUTDOWN");
-        } else if ( (prevAction == null || !prevAction.equals(TWAction.REFUEL)) &&
+        } else if ((prevAction == null || !prevAction.equals(TWAction.REFUEL)) &&
                 ((obj && (e instanceof TWFuelStation)) || this.getEnvironment().inFuelStation(this))) {
             LOGGER.info("Action: REFUEL");
             act = TWAction.REFUEL;
@@ -259,8 +240,7 @@ public class SimpleGreedyTWAgent extends TWAgent {
                     fpath = pathGenerator.findPath(this.getX(), this.getY(), xleft, ybottom);
                     break;
             }
-        }
-        else {
+        } else {
             int topLeftDist = this.fuelRequired(this.xleft, this.ytop);
             if (topLeftDist < leastDist) {
                 leastDist = topLeftDist;
@@ -321,9 +301,13 @@ public class SimpleGreedyTWAgent extends TWAgent {
         for (int i = 0; i < yIter; i++) {
             int iter = closestCorner.equals(ClosestCorner.BOTTOM_LEFT) || closestCorner.equals(ClosestCorner.TOP_LEFT) ? i : i + 1;
             //TODO: move right for odd iters if starting @ left; move right for even iters if starting @ right;
-            if (iter % 2 == 0) { fpath = pathGenerator.findPath(this.getX(), this.getY(), xright, this.getY()); }
+            if (iter % 2 == 0) {
+                fpath = pathGenerator.findPath(this.getX(), this.getY(), xright, this.getY());
+            }
             //TODO: move left for even iters if starting @ left; move left for odd iters if starting @ right;
-            else { fpath = pathGenerator.findPath(this.getX(), this.getY(), xleft, this.getY()); }
+            else {
+                fpath = pathGenerator.findPath(this.getX(), this.getY(), xleft, this.getY());
+            }
             if (fpath != null && fpath.getpath() != null && fpath.getpath().size() > 0) {
                 for (TWPathStep eachStep : fpath.getpath()) {
                     try {
@@ -345,9 +329,13 @@ public class SimpleGreedyTWAgent extends TWAgent {
 
             int nextHop;
             //TODO: move up if starting @ bottom
-            if (closestCorner.equals(ClosestCorner.TOP_LEFT) || closestCorner.equals(ClosestCorner.TOP_RIGHT)) { nextHop = Math.min(this.getY() + yIncrement, this.getEnvironment().getyDimension() - this.sensor.sensorRange); }
+            if (closestCorner.equals(ClosestCorner.TOP_LEFT) || closestCorner.equals(ClosestCorner.TOP_RIGHT)) {
+                nextHop = Math.min(this.getY() + yIncrement, this.getEnvironment().getyDimension() - this.sensor.sensorRange);
+            }
             //TODO: move down if starting @ top
-            else { nextHop = Math.max(this.getY() - yIncrement, 0 + this.sensor.sensorRange); }
+            else {
+                nextHop = Math.max(this.getY() - yIncrement, 0 + this.sensor.sensorRange);
+            }
             try {
                 fpath = pathGenerator.findPath(this.getX(), this.getY(), this.getX(), nextHop);
                 if (fpath != null && fpath.getpath() != null && fpath.getpath().size() > 0) {
@@ -503,7 +491,7 @@ public class SimpleGreedyTWAgent extends TWAgent {
         int ymin = Math.max(this.getY() - this.sensor.sensorRange, 0);
         int ymax = Math.min(this.getY() + this.sensor.sensorRange, this.getEnvironment().getyDimension() - 1);
 
-        for(int x0 = 0; x0 < this.getEnvironment().getxDimension(); ++x0) {
+        for (int x0 = 0; x0 < this.getEnvironment().getxDimension(); ++x0) {
             for (int y0 = 0; y0 < this.getEnvironment().getyDimension(); ++y0) {
                 TWAction action = this.findBestAction();
 
@@ -518,8 +506,7 @@ public class SimpleGreedyTWAgent extends TWAgent {
                     if (mEntity instanceof TWFuelStation && action == TWAction.REFUEL) {
                         nearestObject = fuelRequired(x0, y0);
                         npath = pathGenerator.findPath(this.getX(), this.getY(), x0, y0);
-                    }
-                    else if (this.fuelRequired(x0, y0) < nearestObject) {
+                    } else if (this.fuelRequired(x0, y0) < nearestObject) {
 //                    System.out.println("Looking at (" + x0 + "," + y0 + ") in memory");
                         if (mEntity instanceof TWTile && (action == null || action == TWAction.PICKUP)) {
                             nearestObject = fuelRequired(x0, y0);
@@ -542,8 +529,7 @@ public class SimpleGreedyTWAgent extends TWAgent {
                         if (vEntity instanceof TWFuelStation && action == TWAction.REFUEL) {
                             nearestObject = fuelRequired(x0, y0);
                             npath = pathGenerator.findPath(this.getX(), this.getY(), x0, y0);
-                        }
-                        else if (this.fuelRequired(x0, y0) < nearestObject) {
+                        } else if (this.fuelRequired(x0, y0) < nearestObject) {
                             if (vEntity instanceof TWTile && (action == null || action == TWAction.PICKUP)) {
                                 nearestObject = fuelRequired(x0, y0);
                                 npath = pathGenerator.findPath(this.getX(), this.getY(), x0, y0);
@@ -575,11 +561,11 @@ public class SimpleGreedyTWAgent extends TWAgent {
                     LinkedList<TWPathStep> steps = newPath.getpath();
                     dir = newPath.popNext().getDirection();
                     nextDirFound = isMovePossible(dir, true);
-                    if ( canTeleport <= 0 && nextDirFound && steps.size() > 0) {
+                    if (canTeleport <= 0 && nextDirFound && steps.size() > 0) {
                         int destX = steps.get(steps.size() - 1).getX();
                         int destY = steps.get(steps.size() - 1).getY();
                         System.out.println("Agent seem to have stuck in a rut...\nRandomly teleporting to (" + destX + "," + destY + ")");
-                        for (TWPathStep s: steps) {
+                        for (TWPathStep s : steps) {
                             try {
                                 this.move(s.getDirection());
                             } catch (CellBlockedException e) {
@@ -591,8 +577,7 @@ public class SimpleGreedyTWAgent extends TWAgent {
                     }
                 }
             } while (!nextDirFound);
-        }
-        else
+        } else
             dir = npath.popNext().getDirection();
         return dir;
     }
@@ -655,7 +640,6 @@ public class SimpleGreedyTWAgent extends TWAgent {
         }
     }
 
-
     private boolean checkMsgForFuelStation() {
         for (Message m : this.getMsg()) {
             if (m.getMessage().contains(TWAction.REFUEL.name())) {
@@ -663,6 +647,11 @@ public class SimpleGreedyTWAgent extends TWAgent {
             }
         }
         return false;
+    }
+
+
+    public enum ClosestCorner {
+        BOTTOM_LEFT, BOTTOM_RIGHT, TOP_LEFT, TOP_RIGHT
     }
 
 }

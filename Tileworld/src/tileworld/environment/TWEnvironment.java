@@ -1,14 +1,7 @@
 /**
- * 
+ *
  */
 package tileworld.environment;
-
-import java.util.ArrayList;
-
-import java.util.HashMap;
-
-import java.util.concurrent.ThreadLocalRandom;
-
 
 import sim.engine.SimState;
 import sim.engine.Steppable;
@@ -18,23 +11,25 @@ import sim.util.Int2D;
 import tileworld.Parameters;
 import tileworld.TWGUI;
 import tileworld.agent.Message;
-
-import tileworld.agent.TWAgent;
 import tileworld.agent.SimpleGreedyTWAgent;
+import tileworld.agent.TWAgent;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 
 /**
  * TWEnvironment
- * 
+ *
  * @author michaellees Created: Apr 16, 2010
- * 
+ *
  *         Copyright michaellees 2010
- * 
- * 
+ *
+ *
  *         Description: Contains the context of the environment and also creates
  *         and removes objects at each time step. You don't need to modify this
  *         but should look at the methods which may be helpful to you.
- * 
+ *
  */
 public class TWEnvironment extends SimState implements Steppable {
 
@@ -42,7 +37,7 @@ public class TWEnvironment extends SimState implements Steppable {
     //Parameters to configure the environment - read from main parameter file
     private final int xDimension = Parameters.xDimension; //size in cells
     private final int yDimension = Parameters.yDimension;
-    
+
     /**
      * grid environment which stores all TWEntities, ObjectGrd is preferred over
      * SparseGrid. The environment is typically not too sparse and we do not
@@ -50,16 +45,16 @@ public class TWEnvironment extends SimState implements Steppable {
      */
     private ObjectGrid2D objectGrid;
     private ObjectGrid2D agentGrid;
-    private ArrayList<HashMap<String,Double>> parameters;
+    private final ArrayList<HashMap<String, Double>> parameters;
     private ArrayList<TWAgent> agents;
     private int totalHolesCreated = 0;
-    private TWObjectCreator<TWTile> tileCreator;
-    private TWObjectCreator<TWHole> holeCreator;
-    private TWObjectCreator<TWObstacle> obstacleCreator;
-    private ArrayList<Message> messages; // the communication channel //CCC
+    private final TWObjectCreator<TWTile> tileCreator;
+    private final TWObjectCreator<TWHole> holeCreator;
+    private final TWObjectCreator<TWObstacle> obstacleCreator;
+    private final ArrayList<Message> messages; // the communication channel //CCC
 
     private int reward;
-    
+
     /**
      * Assumed all objects have same lifeTime now.
      */
@@ -69,23 +64,19 @@ public class TWEnvironment extends SimState implements Steppable {
     private Bag obstacles;
     private TWFuelStation fuelingStation;
 
-    public boolean inFuelStation(TWAgent agent) {
-    	return ((agent.x==fuelingStation.x)&&(agent.y==fuelingStation.y));
+    public TWEnvironment() {
+
+        this(Parameters.seed);
     }
-    
+
 //    public TWFuelStation getFuelingStation() {
 //        return fuelingStation;
 //    }
 
-    public TWEnvironment() {
-    	
-        this(Parameters.seed);
-    }
-    
-    public TWEnvironment(ArrayList<HashMap<String,Double>> parameters) {
+    public TWEnvironment(ArrayList<HashMap<String, Double>> parameters) {
         this(Parameters.seed, parameters);
     }
-    
+
     public TWEnvironment(long seed) {
         super(seed);
         //System.out.println("CALLED");
@@ -98,16 +89,16 @@ public class TWEnvironment extends SimState implements Steppable {
                 holes, this.random, new TWHole(), this);
         this.obstacleCreator = new TWObjectCreator<TWObstacle>(Parameters.obstacleMean,
                 Parameters.obstacleDev, obstacles, this.random, new TWObstacle(), this);
-        parameters = new ArrayList<HashMap<String,Double>>();
+        parameters = new ArrayList<HashMap<String, Double>>();
         tiles = new Bag();
         holes = new Bag();
         obstacles = new Bag();
         messages = new ArrayList<Message>();
     }
 
-    public TWEnvironment(long seed, ArrayList<HashMap<String,Double>> parameters) {
+    public TWEnvironment(long seed, ArrayList<HashMap<String, Double>> parameters) {
         super(tileworld.Parameters.seed);
-    	//super(9042014);
+        //super(9042014);
         /// CONSTRUCTOR FOR GA
         // create object creation distributions (assumed normal for now)
 
@@ -116,8 +107,8 @@ public class TWEnvironment extends SimState implements Steppable {
         this.holeCreator = new TWObjectCreator<TWHole>(tileworld.Parameters.holeMean, tileworld.Parameters.holeDev,
                 holes, this.random, new TWHole(), this);
         this.obstacleCreator = new TWObjectCreator<TWObstacle>(tileworld.Parameters.obstacleMean,
-        		tileworld.Parameters.obstacleDev, obstacles, this.random, new TWObstacle(), this);
-        this.parameters = new ArrayList<HashMap<String,Double>>();
+                tileworld.Parameters.obstacleDev, obstacles, this.random, new TWObstacle(), this);
+        this.parameters = new ArrayList<HashMap<String, Double>>();
         this.parameters.add(parameters.get(0));
         this.parameters.add(parameters.get(1));
 
@@ -128,14 +119,17 @@ public class TWEnvironment extends SimState implements Steppable {
         messages = new ArrayList<Message>();
     }
 
-  
+    public boolean inFuelStation(TWAgent agent) {
+        return ((agent.x == fuelingStation.x) && (agent.y == fuelingStation.y));
+    }
+
     @Override
     public void start() {
         super.start();
         //create my grid
         this.objectGrid = new ObjectGrid2D(getxDimension(), getyDimension());
         this.agentGrid = new ObjectGrid2D(getxDimension(), getyDimension());
-        if(TWGUI.instance!=null){
+        if (TWGUI.instance != null) {
             TWGUI.instance.resetDisplay();
         }
 
@@ -152,27 +146,27 @@ public class TWEnvironment extends SimState implements Steppable {
 
         //create the fueling station
         pos = this.generateRandomLocation();
-        fuelingStation = new TWFuelStation(pos.getX(), pos.getY(),this);
+        fuelingStation = new TWFuelStation(pos.getX(), pos.getY(), this);
         System.out.println("Fueling Station located at (" + pos.getX() + "," + pos.getY() + ")");
     }
-    
-    
-    public ArrayList<Message> getMessages(){
-    	return messages;
+
+
+    public ArrayList<Message> getMessages() {
+        return messages;
     }
 
-    public void receiveMessage(Message m){
-    	messages.add(m);
+    public void receiveMessage(Message m) {
+        messages.add(m);
     }
 
     private void createTWObjects(double time) {
         try {
             tiles.addAll(tileCreator.createTWObjects(time));
-                //holes.addAll(holeCreator.createTWObjects(time));
+            //holes.addAll(holeCreator.createTWObjects(time));
             Bag bag = holeCreator.createTWObjects(time);
             totalHolesCreated += bag.size();
             holes.addAll(bag);
-            
+
             obstacles.addAll(obstacleCreator.createTWObjects(time));
         } catch (IllegalAccessException e) {
             // TODO Auto-generated catch block
@@ -213,7 +207,7 @@ public class TWEnvironment extends SimState implements Steppable {
     }
 
     public void step(SimState state) {
-    	double time = state.schedule.getTime();
+        double time = state.schedule.getTime();
         // create new objects
         createTWObjects(time);
         // remove old objects (dead ones)
@@ -227,32 +221,28 @@ public class TWEnvironment extends SimState implements Steppable {
     public ObjectGrid2D getObjectGrid() {
         return objectGrid;
     }
-    
+
     public ObjectGrid2D getAgentGrid() {
         return agentGrid;
     }
-    
+
     public boolean canPickupTile(TWTile tile, TWAgent agent) {
-    	if(!agent.sameLocation(tile))
-    		return false;
-    	TWEntity e = (TWEntity) objectGrid.get(tile.x, tile.y);
-    	if(e == null||!(e instanceof TWTile))
-    		return false;
-    	return true;
-    }
-    
-    public boolean canPutdownTile(TWHole hole, TWAgent agent) {
-    	if(!agent.hasTile())
-    		return false;
-    	if(!agent.sameLocation(hole))
-    		return false;
-    	TWEntity e = (TWEntity) objectGrid.get(hole.x, hole.y);
-    	if(e == null||!(e instanceof TWHole))
-    		return false;
-    	return true;
+        if (!agent.sameLocation(tile))
+            return false;
+        TWEntity e = (TWEntity) objectGrid.get(tile.x, tile.y);
+        return e != null && e instanceof TWTile;
     }
 
- 
+    public boolean canPutdownTile(TWHole hole, TWAgent agent) {
+        if (!agent.hasTile())
+            return false;
+        if (!agent.sameLocation(hole))
+            return false;
+        TWEntity e = (TWEntity) objectGrid.get(hole.x, hole.y);
+        return e != null && e instanceof TWHole;
+    }
+
+
     /**
      * @return the xDimension
      */
@@ -267,8 +257,8 @@ public class TWEnvironment extends SimState implements Steppable {
         return yDimension;
     }
 
-    public boolean isCellOccupied(int x, int y){
-            return (objectGrid.get(x, y) != null);
+    public boolean isCellOccupied(int x, int y) {
+        return (objectGrid.get(x, y) != null);
     }
 
     /**
@@ -278,10 +268,10 @@ public class TWEnvironment extends SimState implements Steppable {
      * @return
      */
     public boolean isCellBlocked(int x, int y) {
-        if(this.isValidLocation(x, y)){
-        TWEntity e = (TWEntity) objectGrid.get(x, y);
-        return (e != null && (e instanceof TWObstacle));
-        }else{
+        if (this.isValidLocation(x, y)) {
+            TWEntity e = (TWEntity) objectGrid.get(x, y);
+            return (e != null && (e instanceof TWObstacle));
+        } else {
             return true;
         }
 
@@ -390,40 +380,43 @@ public class TWEnvironment extends SimState implements Steppable {
     /**
      * Creates and schedues a TWAgent. Also adds the agent to the portrayal if
      * a portrayal exists.
-     * 
+     *
      * Remember lower priority means it is executed earlier.
-     * 
-     * 
+     *
+     *
      * @param a
-     * @param ordering 
+     * @param ordering
      */
     private void createAgent(TWAgent a) {
-    	schedule.scheduleRepeating(new Steppable(){public void step(SimState state) {a.sense(); a.communicate();}}, 2, 1.0);
+        schedule.scheduleRepeating(new Steppable() {
+            public void step(SimState state) {
+                a.sense();
+                a.communicate();
+            }
+        }, 2, 1.0);
         schedule.scheduleRepeating(a, 3, 1.0);
-        if(TWGUI.instance !=null){
+        if (TWGUI.instance != null) {
             TWGUI.instance.addMemoryPortrayal(a);
         }
     }
 
-    public int getScore()
-    {
-    	int score = 0;
-    	for(TWAgent agent: agents)
-    		score += agent.getScore();
-    	return score;
+    public int getScore() {
+        int score = 0;
+        for (TWAgent agent : agents)
+            score += agent.getScore();
+        return score;
     }
-   
-    public int getTotalHolesCreated()
-    {
-    	return totalHolesCreated;
-    }
-    
 
-    public int getReward(){
-    	return reward;
+    public int getTotalHolesCreated() {
+        return totalHolesCreated;
     }
-    
-    public void increaseReward(){
-    	reward += 1;
+
+
+    public int getReward() {
+        return reward;
+    }
+
+    public void increaseReward() {
+        reward += 1;
     }
 }

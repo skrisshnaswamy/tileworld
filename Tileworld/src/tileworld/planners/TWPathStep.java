@@ -12,12 +12,11 @@ import tileworld.environment.TWDirection;
  *
  * @author michaellees
  * Created: Apr 22, 2010
- *
+ * <p>
  * Copyright michaellees 2010
- *
- *
+ * <p>
+ * <p>
  * Description: Contains details of a plan step, the direction and current location.
- *
  */
 public class TWPathStep {
     private final int x;

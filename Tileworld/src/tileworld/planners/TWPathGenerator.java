@@ -8,7 +8,6 @@ package tileworld.planners;
 /**
  * Interface for all path generators, see AstarPathGenerator as an example.
  *
- *
  * @author michaellees
  */
 
@@ -24,5 +23,5 @@ public interface TWPathGenerator {
      * @param ty y-coordinate of target location
      * @return A path between (sx,sy) and (tx,ty)
      */
-    public TWPath findPath(int sx, int sy, int tx, int ty);
+    TWPath findPath(int sx, int sy, int tx, int ty);
 }

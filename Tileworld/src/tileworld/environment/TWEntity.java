@@ -1,7 +1,8 @@
 /**
- * 
+ *
  */
 package tileworld.environment;
+
 import sim.util.Int2D;
 import tileworld.exceptions.CellBlockedException;
 import tileworld.exceptions.InsufficientFuelException;
@@ -23,22 +24,22 @@ import tileworld.exceptions.InsufficientFuelException;
  */
 
 
-public abstract class TWEntity{
-
-    private TWEnvironment environment;
+public abstract class TWEntity {
 
     protected int x;
     protected int y;
+    private TWEnvironment environment;
 
     /**
      * SHould not be used, defined for creating instances for ObjectCreators
      */
-    public TWEntity(){
-        x=0;y=0;
+    public TWEntity() {
+        x = 0;
+        y = 0;
     }
 
-    public TWEntity(int xpos, int ypos, TWEnvironment env){
-        
+    public TWEntity(int xpos, int ypos, TWEnvironment env) {
+
         environment = env;
         //Set location of entity when it's created
 //        x = xpos; y = ypos;
@@ -46,22 +47,23 @@ public abstract class TWEntity{
         this.setLocation(xpos, ypos);
     }
 
-     public TWEntity(Int2D pos, TWEnvironment env){
+    public TWEntity(Int2D pos, TWEnvironment env) {
         this(pos.x, pos.y, env);
-     }
+    }
 
     protected abstract void move(TWDirection d) throws InsufficientFuelException, CellBlockedException;
 
-    protected void setLocation(int xpos, int ypos){
-        x=xpos;y=ypos;
+    protected void setLocation(int xpos, int ypos) {
+        x = xpos;
+        y = ypos;
         //Set location of entity when it's created
-        if(environment != null)
-        environment.getObjectGrid().set(x, y, this);
+        if (environment != null)
+            environment.getObjectGrid().set(x, y, this);
     }
 
-    public void setLocation(Int2D pos){
+    public void setLocation(Int2D pos) {
 
-        this.setLocation(pos.x,pos.y);
+        this.setLocation(pos.x, pos.y);
     }
 
     /**
@@ -85,26 +87,26 @@ public abstract class TWEntity{
      * @param y1 y coordinate to check to
      * @return the manhattan distance from this entity to the coordinate x1,y1
      */
-    private double getManhattanDistanceTo(int x1, int y1){
-        return Math.abs(x1-x) + Math.abs(y1-y);
+    private double getManhattanDistanceTo(int x1, int y1) {
+        return Math.abs(x1 - x) + Math.abs(y1 - y);
     }
-    
-     /**
+
+    /**
      * Returns the manhattan distance from this entity to another specified entity.
      *
      * @param ent other entity to check distance to
      * @return the manhattan distance from this entity to ent
      */
-    private double getManhattanDistanceTo(TWEntity ent){
+    private double getManhattanDistanceTo(TWEntity ent) {
         return getManhattanDistanceTo(ent.x, ent.y);
     }
 
-    public double getDistanceTo(TWEntity a){
+    public double getDistanceTo(TWEntity a) {
         return getDistanceTo(a.x, a.y);
     }
 
-     public double getDistanceTo(int x, int y){
-        return getManhattanDistanceTo(x,y);
+    public double getDistanceTo(int x, int y) {
+        return getManhattanDistanceTo(x, y);
     }
 
     /**
@@ -117,13 +119,13 @@ public abstract class TWEntity{
 
     /**
      * return True if a is closer than b
-    */
-    public boolean closerTo(TWEntity a, TWEntity b){
+     */
+    public boolean closerTo(TWEntity a, TWEntity b) {
         return this.getDistanceTo(a) < getDistanceTo(b);
     }
 
-    
-    public boolean sameLocation(TWEntity a){
+
+    public boolean sameLocation(TWEntity a) {
         return (this.x == a.x && this.y == a.y);
     }
 

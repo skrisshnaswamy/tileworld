@@ -5,14 +5,13 @@ package tileworld;
  *
  * @author michaellees
  * Created: Apr 21, 2010
- *
- * Copyright michaellees 
- *
+ * <p>
+ * Copyright michaellees
+ * <p>
  * Description:
- *
+ * <p>
  * Class used to store global simulation parameters.
  * Environment related parameters are still in the TWEnvironment class.
- *
  */
 public class Parameters {
 
@@ -94,8 +93,8 @@ public class Parameters {
 //    public static final double obstacleDev = 0.5f;
 //    // the life time of each object
 //    public static final int lifeTime = 100;
-	
-	/*********************************************************************************************/
+
+    /*********************************************************************************************/
     /*  TRIAL#4: Env Size = 100x100, Avg Obj Creation Rate: N(mu=0.1, sigma=0.025), Lifetime = 150  */
     /*********************************************************************************************/
 //    //Simulation Parameters
